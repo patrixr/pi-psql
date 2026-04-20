@@ -1,10 +1,56 @@
 # Publishing to npm
 
-This repository is configured to automatically publish to npm when you create a GitHub release.
+This repository uses **npm Trusted Publishing** (recommended) or classic npm tokens.
 
-## Setup (One-time)
+## Setup Method 1: Trusted Publishing (Recommended)
 
-1. **Get an npm token:**
+No secrets needed! Uses GitHub's OIDC to authenticate.
+
+### First-time Setup
+
+1. **Do initial manual publish:**
+   ```bash
+   cd ~/Code/pi-psql
+   npm login
+   npm publish
+   ```
+
+2. **Enable Trusted Publishing on npm:**
+   - Go to: https://www.npmjs.com/package/pi-psql/access
+   - Click "Publishing" tab
+   - Enable "Require two-factor authentication or automation tokens to publish"
+   - Under "Automation", click "Add GitHub Actions"
+   - Fill in:
+     - **Repository:** `patrixr/pi-psql`
+     - **Workflow:** `publish.yml`
+     - **Environment:** (leave blank)
+   - Click "Add"
+
+3. **Done!** Future publishes will use OIDC automatically.
+
+### How to Publish (with Trusted Publishing)
+
+```bash
+# Update version
+npm version patch  # or minor/major
+
+# Push tags
+git push --follow-tags
+
+# Create GitHub release
+# Go to: https://github.com/patrixr/pi-psql/releases/new
+# The workflow will automatically publish to npm via OIDC
+```
+
+---
+
+## Setup Method 2: Classic NPM Token (Fallback)
+
+If Trusted Publishing doesn't work, use a classic token.
+
+### Setup
+
+1. **Get an npm automation token:**
    ```bash
    npm login
    npm token create --cidr=0.0.0.0/0
@@ -17,56 +63,78 @@ This repository is configured to automatically publish to npm when you create a 
    - Value: (paste your npm token)
    - Click "Add secret"
 
-## How to Publish
+### How to Publish (with Token)
 
-### Option 1: Create a GitHub Release (Recommended)
+Same as above - the workflow will use the token if Trusted Publishing isn't set up.
 
-1. Update version in `package.json`:
+---
+
+## Publishing Process
+
+### Via GitHub Release (Recommended)
+
+1. Update version:
    ```bash
    npm version patch  # or minor, or major
-   ```
-
-2. Push the tag:
-   ```bash
    git push --follow-tags
    ```
 
-3. Create a GitHub release:
+2. Create release:
    - Go to: https://github.com/patrixr/pi-psql/releases/new
    - Select the tag you just pushed
    - Add release notes
    - Click "Publish release"
 
-4. The workflow will automatically:
-   - Run tests
-   - Publish to npm
-   - Create a summary with installation instructions
+3. Workflow automatically:
+   - Runs tests
+   - Publishes to npm
+   - Creates summary
 
-### Option 2: Manual Workflow Dispatch
+### Manual Workflow Dispatch
 
 1. Go to: https://github.com/patrixr/pi-psql/actions/workflows/publish.yml
-
 2. Click "Run workflow"
-
-3. Optionally specify a version (or leave empty to use current `package.json` version)
-
+3. Optionally specify version
 4. Click "Run workflow"
+
+---
 
 ## Verify Publication
 
-After publishing, verify at:
 - npm: https://www.npmjs.com/package/pi-psql
-- Installation: `pi install npm:pi-psql`
+- Install: `pi install npm:pi-psql`
+
+---
 
 ## Troubleshooting
 
-**"401 Unauthorized"** - NPM_TOKEN is invalid or missing
-- Regenerate token: `npm token create --cidr=0.0.0.0/0`
-- Update GitHub secret
+### "403 Forbidden" with Trusted Publishing
 
-**"403 Forbidden"** - Package name already taken or you don't have access
-- Check package name in `package.json`
-- Verify npm account has publish rights
+**Cause:** Trusted Publishing not configured on npm
 
-**"You cannot publish over the previously published versions"**
-- Update version in `package.json` before publishing
+**Fix:**
+1. Go to https://www.npmjs.com/package/pi-psql/access
+2. Add GitHub Actions automation (see setup above)
+
+### "401 Unauthorized" 
+
+**Cause:** No NPM_TOKEN and Trusted Publishing not set up
+
+**Fix:** Choose one:
+- Set up Trusted Publishing (recommended)
+- Add NPM_TOKEN secret
+
+### "npm ERR! need auth" with 2FA
+
+**Cause:** Using classic token with 2FA required
+
+**Fix:** Use Trusted Publishing instead (no 2FA issues)
+
+### "You cannot publish over previously published versions"
+
+**Cause:** Version already exists
+
+**Fix:** Update version in `package.json`:
+```bash
+npm version patch
+```

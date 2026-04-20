@@ -60,6 +60,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
+      # Note: If you've set up npm Trusted Publishing (recommended),
+      # the above will use OIDC authentication instead of NPM_TOKEN.
+      # See .github/PUBLISHING.md for setup instructions.
+      
       - name: Get published version
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
