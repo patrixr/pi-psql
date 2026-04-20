@@ -2,7 +2,20 @@
   "name": "pi-psql",
   "version": "1.0.0",
   "description": "Secure PostgreSQL client skill for pi - query databases with encrypted credentials",
-  "private": true,
+  "keywords": ["pi-package", "pi-skill", "postgresql", "postgres", "database", "sql", "encryption", "secure"],
+  "author": "Patrick Roumanoff",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patrixr/pi-psql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/patrixr/pi-psql/issues"
+  },
+  "homepage": "https://github.com/patrixr/pi-psql#readme",
+  "pi": {
+    "skills": ["./"]
+  },
   "dependencies": {
     "pg": "^8.13.1",
     "dotenv": "^16.4.7",

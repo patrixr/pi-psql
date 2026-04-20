@@ -1,114 +1,100 @@
 ---
 name: pi-psql
-description: Connect to and query PostgreSQL databases. Execute SQL queries, inspect schemas, and manage database operations. Use when working with PostgreSQL databases.
+description: Secure PostgreSQL client with encrypted credentials. Execute SQL queries, inspect schemas, list tables, and explore database structure. Use when working with PostgreSQL databases. Credentials are managed separately by humans via web UI.
 ---
 
-# pi-psql
+# PostgreSQL Client
 
-A secure skill for connecting to and querying PostgreSQL databases. All credentials are encrypted at rest and managed via a web UI or CLI.
+A secure PostgreSQL client skill with AES-256-GCM encrypted credentials. Query databases without ever exposing passwords or connection strings.
 
-## Setup
+## How It Works
 
-### 1. Install dependencies (run once):
+**Security Model:**
+- Humans manage connections via web UI (`launch-connection-manager.js`)
+- Credentials encrypted at rest with auto-generated key
+- You can only use existing connections by name
+- You cannot create, modify, or see plaintext credentials
+
+## Available Commands
+
+### List Connections
+
+See what databases are available:
 ```bash
-cd ~/.pi/agent/skills/pi-psql && npm install
+./execute-query.js --list
 ```
 
-### Manage connections (DO THIS MANUALLY - AI cannot see this):
+### Execute Query
 
-**Web UI (Recommended)**
+Run SQL on the default connection:
 ```bash
-cd ~/.pi/agent/skills/pi-psql && node query.js --ui
+./execute-query.js "SELECT * FROM users LIMIT 10"
 ```
 
-This will:
-- Open a web interface in your browser
-- All interactions are private - the AI cannot see the web traffic
-- Add, test, and manage connections visually
-- Your credentials never leave your machine
-
-## Web UI (For You - Manual Use)
-
-Launch the web interface:
+Run SQL on a specific connection:
 ```bash
-node query.js --ui
+./execute-query.js --connection production "SELECT COUNT(*) FROM orders"
 ```
 
-Features:
-- 🔐 Add connections with visual forms
-- ✅ Test connections before saving
-- 🎯 Set default connection
-- 🗑️ Delete connections
-- 📊 View encryption key info
-- 🎨 Modern, user-friendly interface
+### Database Information
 
-**Security:** The web server runs locally (localhost:9876). All data stays on your machine. The AI agent can start the server but cannot see your browser interactions or form submissions.
-
-## Query Interface (For AI Agent)
-
-The AI can only use existing connections by name. It cannot create, modify, or see your credentials.
-
+Get current database info:
 ```bash
-# List available connections (names only)
-node query.js --list
-
-# Use default connection
-node query.js "SELECT * FROM users LIMIT 5"
-
-# Use specific connection
-node query.js --connection production "SELECT COUNT(*) FROM users"
-
-# Get database info
-node query.js --info
-
-# List all tables
-node query.js --tables
-
-# Describe table schema
-node query.js --describe tablename
+./execute-query.js --info
 ```
 
-## Security
-
-- ✅ All credentials encrypted with AES-256-GCM
-- ✅ Encryption key auto-generated on first use and stored in `.key` (within skill directory)
-- ✅ Connection file (`connections.enc`) is gitignored
-- ✅ AI can only use existing connections, cannot create/modify
-- ✅ AI never sees plaintext credentials
-- ✅ Passwords never displayed in output
-
-### Encryption Key
-
-The encryption key is auto-generated on first use and stored in `.key` within the skill directory.
-
-To backup your key:
+List all tables:
 ```bash
-cat ~/.pi/agent/skills/pi-psql/.key
+./execute-query.js --tables
 ```
 
-**Important:** If you lose the `.key` file, you'll lose access to your encrypted connections.
+Describe a table schema:
+```bash
+./execute-query.js --describe users
+```
 
 ## Examples
 
 ```bash
-# You create a connection manually via web UI:
-node query.js --ui
-# Enter: name=local, host=localhost, database=mydb, etc.
+# Check what connections are available
+./execute-query.js --list
 
-# AI can use it by name:
-node query.js --connection local "SELECT * FROM users"
+# Query the default database
+./execute-query.js "SELECT version()"
 
-# Or use default:
-node query.js "SELECT COUNT(*) FROM orders"
+# Use a specific connection
+./execute-query.js --connection analytics "
+  SELECT date, COUNT(*) as orders 
+  FROM orders 
+  WHERE created_at > NOW() - INTERVAL '7 days'
+  GROUP BY date
+"
+
+# Explore the schema
+./execute-query.js --tables
+./execute-query.js --describe products
+
+# Get database stats
+./execute-query.js --info
 ```
 
-## Migration from connections.json
+## Limitations
 
-If you have an existing `connections.json`, you'll need to re-add connections using the web UI:
+- Read-only interface - you cannot add/modify connections
+- Cannot see connection strings or passwords
+- Cannot access the encryption key
+- If a connection doesn't exist, ask the user to add it via the web UI
 
-```bash
-node query.js --ui
-# Add the same connection details through the web interface
-```
+## When to Use This Skill
 
-The old `connections.json` file is no longer used.
+Use this skill when you need to:
+- Query PostgreSQL databases
+- Inspect database schemas
+- Analyze data with SQL
+- Check table structures
+- Explore database contents
+
+Do NOT use this skill for:
+- Adding new database connections (user must do this manually)
+- Modifying credentials
+- Non-PostgreSQL databases

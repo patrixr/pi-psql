@@ -8,15 +8,14 @@ async function main() {
   try {
     if (args.length === 0 || args[0] === '--help') {
       console.log('Usage:');
-      console.log('  node query.js "SQL QUERY"');
-      console.log('  node query.js --connection <name> "SQL QUERY"');
-      console.log('  node query.js --list');
-      console.log('  node query.js --info');
-      console.log('  node query.js --tables');
-      console.log('  node query.js --describe TABLE_NAME');
-      console.log('  node query.js --ui             # Open web UI');
-      console.log('\nNote: This is a read-only interface for the AI agent.');
-      console.log('To create/modify connections, use: node cli.js or --ui');
+      console.log('  execute-query.js "SQL QUERY"');
+      console.log('  execute-query.js --connection <name> "SQL QUERY"');
+      console.log('  execute-query.js --list              # List connections');
+      console.log('  execute-query.js --info              # Database info');
+      console.log('  execute-query.js --tables            # List all tables');
+      console.log('  execute-query.js --describe <table>  # Describe table schema');
+      console.log('  execute-query.js --ui                # Launch connection manager (manual use)');
+      console.log('\nNote: Use launch-connection-manager.js to add/modify connections');
       process.exit(0);
     }
     
