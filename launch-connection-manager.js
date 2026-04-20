@@ -83,7 +83,7 @@ app.put('/api/connections/:name/default', (req, res) => {
 app.get('/api/key-info', (req, res) => {
   const os = require('os');
   const fs = require('fs');
-  const keyPath = path.join(os.homedir(), '.config', 'postgres-client', 'key');
+  const keyPath = path.join(__dirname, '.key');
   
   res.json({
     keyPath: keyPath,
