@@ -262,3 +262,16 @@ To publish a new version:
 3. Create a GitHub release
 4. Workflow automatically publishes to npm
 
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+**Quick start:**
+- Use conventional commits: `feat:`, `fix:`, etc.
+- Create PRs against `main` branch
+- semantic-release handles versioning automatically
+
+## Code of Conduct
+
+This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).

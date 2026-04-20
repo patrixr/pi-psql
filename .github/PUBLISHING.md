@@ -1,140 +1,240 @@
 # Publishing to npm
 
-This repository uses **npm Trusted Publishing** (recommended) or classic npm tokens.
+This repository uses **semantic-release** with conventional commits for automated versioning and publishing.
 
-## Setup Method 1: Trusted Publishing (Recommended)
+## How It Works
 
-No secrets needed! Uses GitHub's OIDC to authenticate.
+1. **Commit with conventional format** (see below)
+2. **Push to main** branch
+3. **semantic-release automatically:**
+   - Analyzes commits since last release
+   - Determines version bump (patch/minor/major)
+   - Updates package.json and CHANGELOG.md
+   - Creates git tag
+   - Publishes to npm
+   - Creates GitHub release
 
-### First-time Setup
+## Commit Message Format
 
-1. **Do initial manual publish:**
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+### Patch Release (1.0.0 → 1.0.1)
+```bash
+git commit -m "fix: resolve connection timeout issue"
+git commit -m "perf: improve query execution speed"
+```
+
+### Minor Release (1.0.0 → 1.1.0)
+```bash
+git commit -m "feat: add support for connection pooling"
+git commit -m "feat(query): add --explain flag for query plans"
+```
+
+### Major Release (1.0.0 → 2.0.0)
+```bash
+git commit -m "feat!: remove deprecated cli.js interface
+
+BREAKING CHANGE: The cli.js interface has been removed. Use launch-connection-manager.js instead."
+```
+
+Or use the footer:
+```bash
+git commit -m "feat: redesign connection storage
+
+BREAKING CHANGE: Connection format changed, requires re-adding connections"
+```
+
+### Other Types (no release)
+```bash
+git commit -m "docs: update README examples"
+git commit -m "chore: update dependencies"
+git commit -m "style: fix code formatting"
+git commit -m "refactor: simplify crypto module"
+git commit -m "test: add integration tests"
+git commit -m "ci: update workflow permissions"
+```
+
+## Publishing Process
+
+### 1. Make Changes
+```bash
+# Work on your feature
+git checkout -b feat/my-feature
+
+# Make commits with conventional format
+git commit -m "feat: add new awesome feature"
+git commit -m "fix: handle edge case in query parser"
+git commit -m "docs: update feature documentation"
+```
+
+### 2. Merge to Main
+```bash
+# Push feature branch
+git push origin feat/my-feature
+
+# Create PR and merge to main
+# OR merge directly if you prefer
+git checkout main
+git merge feat/my-feature
+git push origin main
+```
+
+### 3. Automatic Release
+The release workflow will:
+1. Analyze commits: `feat` → minor, `fix` → patch, `BREAKING CHANGE` → major
+2. Determine new version (e.g., 1.2.0 → 1.3.0)
+3. Update package.json to 1.3.0
+4. Generate CHANGELOG.md entry
+5. Commit changes: `chore(release): 1.3.0 [skip ci]`
+6. Create tag: `v1.3.0`
+7. Publish to npm
+8. Create GitHub release with changelog
+
+### 4. Verify
+- npm: https://www.npmjs.com/package/pi-psql
+- GitHub: https://github.com/patrixr/pi-psql/releases
+- Install: `pi install npm:pi-psql@latest`
+
+## Examples
+
+### Bug Fix Release
+```bash
+git commit -m "fix: prevent duplicate connections in list"
+git push origin main
+# → 1.0.0 → 1.0.1
+```
+
+### Feature Release
+```bash
+git commit -m "feat: add connection health check command"
+git push origin main
+# → 1.0.1 → 1.1.0
+```
+
+### Breaking Change Release
+```bash
+git commit -m "feat!: rename server.js to launch-connection-manager.js
+
+BREAKING CHANGE: Users must update scripts to use new filename"
+git push origin main
+# → 1.1.0 → 2.0.0
+```
+
+### Multiple Changes
+```bash
+git commit -m "feat: add connection timeout option"
+git commit -m "fix: handle SSL certificate validation"
+git commit -m "docs: add timeout configuration example"
+git push origin main
+# → Combines all, creates minor release (feat takes precedence)
+# → 2.0.0 → 2.1.0
+```
+
+## Setup (One-time)
+
+### npm Trusted Publishing (Recommended)
+
+1. **First publish** (if not done):
    ```bash
-   cd ~/Code/pi-psql
    npm login
    npm publish
    ```
 
-2. **Enable Trusted Publishing on npm:**
+2. **Enable Trusted Publishing:**
    - Go to: https://www.npmjs.com/package/pi-psql/access
    - Click "Publishing" tab
    - Enable "Require two-factor authentication or automation tokens to publish"
    - Under "Automation", click "Add GitHub Actions"
-   - Fill in:
-     - **Repository:** `patrixr/pi-psql`
-     - **Workflow:** `publish.yml`
-     - **Environment:** (leave blank)
-   - Click "Add"
+   - Repository: `patrixr/pi-psql`
+   - Workflow: `release.yml`
+   - Environment: (leave blank)
 
-3. **Done!** Future publishes will use OIDC automatically.
+3. **Done!** No NPM_TOKEN secret needed.
 
-### How to Publish (with Trusted Publishing)
+### Classic Token (Fallback)
 
-```bash
-# Update version
-npm version patch  # or minor/major
+If Trusted Publishing doesn't work:
 
-# Push tags
-git push --follow-tags
-
-# Create GitHub release
-# Go to: https://github.com/patrixr/pi-psql/releases/new
-# The workflow will automatically publish to npm via OIDC
-```
-
----
-
-## Setup Method 2: Classic NPM Token (Fallback)
-
-If Trusted Publishing doesn't work, use a classic token.
-
-### Setup
-
-1. **Get an npm automation token:**
+1. Create automation token:
    ```bash
    npm login
    npm token create --cidr=0.0.0.0/0
    ```
-   
-2. **Add the token to GitHub:**
+
+2. Add to GitHub:
    - Go to: https://github.com/patrixr/pi-psql/settings/secrets/actions
-   - Click "New repository secret"
-   - Name: `NPM_TOKEN`
-   - Value: (paste your npm token)
-   - Click "Add secret"
+   - Add secret: `NPM_TOKEN`
 
-### How to Publish (with Token)
+## Commit Message Guidelines
 
-Same as above - the workflow will use the token if Trusted Publishing isn't set up.
+### Structure
+```
+<type>(<scope>): <subject>
 
----
+<body>
 
-## Publishing Process
+<footer>
+```
 
-### Via GitHub Release (Recommended)
+### Types
+- `feat`: New feature → minor release
+- `fix`: Bug fix → patch release
+- `perf`: Performance improvement → patch release
+- `docs`: Documentation only → no release
+- `style`: Formatting, missing semicolons → no release
+- `refactor`: Code restructuring → no release
+- `test`: Adding tests → no release
+- `chore`: Maintenance → no release
+- `ci`: CI/CD changes → no release
 
-1. Update version:
-   ```bash
-   npm version patch  # or minor, or major
-   git push --follow-tags
-   ```
+### Breaking Changes
+Add `!` after type or `BREAKING CHANGE:` in footer → major release
 
-2. Create release:
-   - Go to: https://github.com/patrixr/pi-psql/releases/new
-   - Select the tag you just pushed
-   - Add release notes
-   - Click "Publish release"
+### Scopes (optional)
+Examples: `feat(core):`, `fix(query):`, `feat(ui):`
 
-3. Workflow automatically:
-   - Runs tests
-   - Publishes to npm
-   - Creates summary
+## Skipping Release
 
-### Manual Workflow Dispatch
+To commit without triggering a release:
+```bash
+git commit -m "chore: update dev dependencies [skip ci]"
+```
 
-1. Go to: https://github.com/patrixr/pi-psql/actions/workflows/publish.yml
+Or use non-releasing types: `docs`, `chore`, `style`, `refactor`, `test`, `ci`
+
+## Manual Release Trigger
+
+Trigger release manually:
+1. Go to: https://github.com/patrixr/pi-psql/actions/workflows/release.yml
 2. Click "Run workflow"
-3. Optionally specify version
+3. Select branch: `main`
 4. Click "Run workflow"
-
----
-
-## Verify Publication
-
-- npm: https://www.npmjs.com/package/pi-psql
-- Install: `pi install npm:pi-psql`
-
----
 
 ## Troubleshooting
 
-### "403 Forbidden" with Trusted Publishing
+### "Nothing to release"
 
-**Cause:** Trusted Publishing not configured on npm
+**Cause:** No releasable commits since last release
 
-**Fix:**
-1. Go to https://www.npmjs.com/package/pi-psql/access
-2. Add GitHub Actions automation (see setup above)
+**Fix:** Make sure commits use conventional format:
+- ✅ `feat: add feature`
+- ✅ `fix: bug fix`
+- ❌ `added feature` (no type prefix)
 
-### "401 Unauthorized" 
+### "Cannot push to protected branch"
 
-**Cause:** No NPM_TOKEN and Trusted Publishing not set up
+**Cause:** semantic-release needs write permissions
 
-**Fix:** Choose one:
-- Set up Trusted Publishing (recommended)
-- Add NPM_TOKEN secret
+**Fix:** Already configured in workflow (`contents: write`)
 
-### "npm ERR! need auth" with 2FA
+### "403 Forbidden" publishing to npm
 
-**Cause:** Using classic token with 2FA required
+**Cause:** Trusted Publishing not configured or NPM_TOKEN missing
 
-**Fix:** Use Trusted Publishing instead (no 2FA issues)
+**Fix:** See Setup section above
 
-### "You cannot publish over previously published versions"
+## References
 
-**Cause:** Version already exists
-
-**Fix:** Update version in `package.json`:
-```bash
-npm version patch
-```
+- [Conventional Commits](https://www.conventionalcommits.org/)
+- [semantic-release](https://github.com/semantic-release/semantic-release)
+- [Commit Message Guidelines](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit)
