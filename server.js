@@ -86,7 +86,6 @@ app.get('/api/key-info', (req, res) => {
   const keyPath = path.join(os.homedir(), '.config', 'postgres-client', 'key');
   
   res.json({
-    useEnvVar: !!process.env.POSTGRES_CLIENT_KEY,
     keyPath: keyPath,
     keyExists: fs.existsSync(keyPath)
   });

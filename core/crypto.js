@@ -10,22 +10,9 @@ const TAG_LENGTH = 16;
 
 /**
  * Get or create encryption key
- * Priority: 
- * 1. POSTGRES_CLIENT_KEY env var
- * 2. Key file in skill directory (.key)
- * 3. Auto-generate and save to skill directory (.key)
+ * Auto-generates on first use and stores in .key file
  */
 function getEncryptionKey() {
-  // Try environment variable first
-  if (process.env.POSTGRES_CLIENT_KEY) {
-    const key = Buffer.from(process.env.POSTGRES_CLIENT_KEY, 'hex');
-    if (key.length === KEY_LENGTH) {
-      return key;
-    }
-    throw new Error('POSTGRES_CLIENT_KEY must be 32 bytes (64 hex characters)');
-  }
-  
-  // Store key in skill directory
   const skillDir = path.join(__dirname, '..');
   const keyPath = path.join(skillDir, '.key');
   
@@ -34,6 +21,7 @@ function getEncryptionKey() {
     if (key.length === KEY_LENGTH) {
       return key;
     }
+    throw new Error('Invalid encryption key in .key file');
   }
   
   // Auto-generate and save

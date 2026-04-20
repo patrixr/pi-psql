@@ -95,12 +95,7 @@ async function loadKeyInfo() {
     const data = await api('/key-info');
     const container = document.getElementById('key-info');
     
-    if (data.useEnvVar) {
-      container.innerHTML = `
-        <p><strong>Encryption Key Source:</strong></p>
-        <p>Environment variable: POSTGRES_CLIENT_KEY</p>
-      `;
-    } else if (data.keyExists) {
+    if (data.keyExists) {
       container.innerHTML = `
         <p><strong>Encryption Key Location:</strong></p>
         <p style="font-family: monospace; font-size: 12px;">${data.keyPath}</p>

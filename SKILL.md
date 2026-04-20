@@ -79,15 +79,14 @@ node query.js --describe tablename
 
 ### Encryption Key
 
-The encryption key is stored in one of two places (priority order):
-
-1. `POSTGRES_CLIENT_KEY` environment variable (64 hex characters)
-2. `.key` file in the skill directory (auto-generated on first use)
+The encryption key is auto-generated on first use and stored in `.key` within the skill directory.
 
 To backup your key:
 ```bash
 cat ~/.pi/agent/skills/pi-psql/.key
 ```
+
+**Important:** If you lose the `.key` file, you'll lose access to your encrypted connections.
 
 ## Examples
 
