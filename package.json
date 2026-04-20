@@ -1,0 +1,12 @@
+{
+  "name": "pi-psql",
+  "version": "1.0.0",
+  "description": "Secure PostgreSQL client skill for pi - query databases with encrypted credentials",
+  "private": true,
+  "dependencies": {
+    "pg": "^8.13.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "open": "^10.1.0"
+  }
+}
