@@ -1,6 +1,6 @@
 # pi-psql
 
-A secure PostgreSQL client skill for [pi coding agent](https://github.com/badlogic/pi-coding-agent). Query databases with AES-256-GCM encrypted credentials that the AI never sees.
+A secure PostgreSQL client skill for [pi coding agent](https://pi.dev). Query databases with AES-256-GCM encrypted credentials that the AI never sees.
 
 ## Features
 
