@@ -1,5 +1,9 @@
 # pi-psql
 
+[![npm version](https://badge.fury.io/js/pi-psql.svg)](https://www.npmjs.com/package/pi-psql)
+[![Release](https://github.com/patrixr/pi-psql/actions/workflows/release.yml/badge.svg)](https://github.com/patrixr/pi-psql/actions/workflows/release.yml)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
 A secure PostgreSQL client skill for [pi coding agent](https://pi.dev). Query databases with AES-256-GCM encrypted credentials that the AI never sees.
 
 ## Features
@@ -254,13 +258,14 @@ Issues and PRs welcome at https://github.com/patrixr/pi-psql
 
 ## Publishing
 
-This package is automatically published to npm via GitHub Actions. See [.github/PUBLISHING.md](.github/PUBLISHING.md) for details.
+This package uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning and publishing.
 
-To publish a new version:
-1. Update version: `npm version patch|minor|major`
-2. Push tags: `git push --follow-tags`
-3. Create a GitHub release
-4. Workflow automatically publishes to npm
+**To release a new version:**
+1. Use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `BREAKING CHANGE:`
+2. Push to main branch
+3. semantic-release automatically versions, tags, and publishes
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines and [.github/PUBLISHING.md](.github/PUBLISHING.md) for detailed publishing docs.
 
 
 ## Contributing
