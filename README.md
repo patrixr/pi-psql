@@ -251,3 +251,14 @@ MIT
 ## Contributing
 
 Issues and PRs welcome at https://github.com/patrixr/pi-psql
+
+## Publishing
+
+This package is automatically published to npm via GitHub Actions. See [.github/PUBLISHING.md](.github/PUBLISHING.md) for details.
+
+To publish a new version:
+1. Update version: `npm version patch|minor|major`
+2. Push tags: `git push --follow-tags`
+3. Create a GitHub release
+4. Workflow automatically publishes to npm
+
