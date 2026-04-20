@@ -14,9 +14,9 @@ A secure skill for connecting to and querying PostgreSQL databases. All credenti
 cd ~/.pi/agent/skills/pi-psql && npm install
 ```
 
-### 2. Manage connections (DO THIS MANUALLY - AI cannot see this):
+### Manage connections (DO THIS MANUALLY - AI cannot see this):
 
-**Option A: Web UI (Recommended)**
+**Web UI (Recommended)**
 ```bash
 cd ~/.pi/agent/skills/pi-psql && node query.js --ui
 ```
@@ -26,11 +26,6 @@ This will:
 - All interactions are private - the AI cannot see the web traffic
 - Add, test, and manage connections visually
 - Your credentials never leave your machine
-
-**Option B: CLI**
-```bash
-cd ~/.pi/agent/skills/pi-psql && node cli.js add
-```
 
 ## Web UI (For You - Manual Use)
 
@@ -48,28 +43,6 @@ Features:
 - 🎨 Modern, user-friendly interface
 
 **Security:** The web server runs locally (localhost:9876). All data stays on your machine. The AI agent can start the server but cannot see your browser interactions or form submissions.
-
-## CLI Tool (For You - Manual Use)
-
-```bash
-# Add a new connection
-node cli.js add
-
-# Test a connection
-node cli.js test
-
-# List all connections (names only)
-node cli.js list
-
-# Remove a connection
-node cli.js remove
-
-# Set default connection
-node cli.js default
-
-# Show encryption key info
-node cli.js key
-```
 
 ## Query Interface (For AI Agent)
 
@@ -119,8 +92,8 @@ cat ~/.pi/agent/skills/pi-psql/.key
 ## Examples
 
 ```bash
-# You create a connection manually:
-node cli.js add
+# You create a connection manually via web UI:
+node query.js --ui
 # Enter: name=local, host=localhost, database=mydb, etc.
 
 # AI can use it by name:
@@ -132,11 +105,11 @@ node query.js "SELECT COUNT(*) FROM orders"
 
 ## Migration from connections.json
 
-If you have an existing `connections.json`, you'll need to re-add connections using the CLI:
+If you have an existing `connections.json`, you'll need to re-add connections using the web UI:
 
 ```bash
-node cli.js add
-# Enter the same connection details
+node query.js --ui
+# Add the same connection details through the web interface
 ```
 
 The old `connections.json` file is no longer used.
