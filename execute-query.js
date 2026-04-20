@@ -23,7 +23,7 @@ async function main() {
     if (args[0] === '--ui') {
       const { spawn } = require('child_process');
       const path = require('path');
-      const serverPath = path.join(__dirname, 'server.js');
+      const serverPath = path.join(__dirname, 'launch-connection-manager.js');
       
       console.log('🚀 Launching web UI...');
       console.log('   The web interface will open in your browser');
