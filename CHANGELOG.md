@@ -1,3 +1,10 @@
+## [2.0.7](https://github.com/patrixr/pi-psql/compare/v2.0.6...v2.0.7) (2026-04-21)
+
+
+### Bug Fixes
+
+* remove npm update from pipeline ([dc5a217](https://github.com/patrixr/pi-psql/commit/dc5a217d7698fc2ca203252ed8a43f2b4753fb2b))
+
 ## [2.0.6](https://github.com/patrixr/pi-psql/compare/v2.0.5...v2.0.6) (2026-04-21)
 
 
