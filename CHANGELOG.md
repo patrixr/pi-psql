@@ -1,3 +1,10 @@
+## [2.0.4](https://github.com/patrixr/pi-psql/compare/v2.0.3...v2.0.4) (2026-04-21)
+
+
+### Bug Fixes
+
+* remove NPM_TOKEN, use OIDC Trusted Publishing only ([a0628f7](https://github.com/patrixr/pi-psql/commit/a0628f72fe5752df3ad28f2b014cb347921b8776))
+
 ## [2.0.3](https://github.com/patrixr/pi-psql/compare/v2.0.2...v2.0.3) (2026-04-21)
 
 
