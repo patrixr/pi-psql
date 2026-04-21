@@ -1,3 +1,19 @@
+# [2.0.0](https://github.com/patrixr/pi-psql/compare/v1.1.0...v2.0.0) (2026-04-21)
+
+
+### Code Refactoring
+
+* separate semantic-release and npm publish workflows ([66b8c90](https://github.com/patrixr/pi-psql/commit/66b8c906590467199fd93d879c91794fa63e3896))
+
+
+### BREAKING CHANGES
+
+* Workflow now operates in two stages:
+1. semantic-release (on push) - analyzes commits, creates tag, updates CHANGELOG
+2. publish (on tag) - publishes to npm
+
+This provides cleaner separation and allows tag-triggered publishing.
+
 # [1.1.0](https://github.com/patrixr/pi-psql/compare/v1.0.0...v1.1.0) (2026-04-21)
 
 
