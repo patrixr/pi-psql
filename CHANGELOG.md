@@ -1,3 +1,10 @@
+## [2.0.3](https://github.com/patrixr/pi-psql/compare/v2.0.2...v2.0.3) (2026-04-21)
+
+
+### Bug Fixes
+
+* trigger publish workflow on release event ([0a0ad13](https://github.com/patrixr/pi-psql/commit/0a0ad13ad2d35efe8776438e0c13003af18e493f))
+
 ## [2.0.2](https://github.com/patrixr/pi-psql/compare/v2.0.1...v2.0.2) (2026-04-21)
 
 
