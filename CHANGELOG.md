@@ -1,3 +1,10 @@
+## [2.0.6](https://github.com/patrixr/pi-psql/compare/v2.0.5...v2.0.6) (2026-04-21)
+
+
+### Bug Fixes
+
+* use Node.js 24 for better npm provenance support ([1daa48b](https://github.com/patrixr/pi-psql/commit/1daa48b506d59f4bf3a9b7b9745e504caf105b98))
+
 ## [2.0.5](https://github.com/patrixr/pi-psql/compare/v2.0.4...v2.0.5) (2026-04-21)
 
 
