@@ -1,3 +1,10 @@
+## [2.0.9](https://github.com/patrixr/pi-psql/compare/v2.0.8...v2.0.9) (2026-04-21)
+
+
+### Bug Fixes
+
+* update error messages to reference launch-connection-manager.js instead of deprecated cli.js ([0a1f19b](https://github.com/patrixr/pi-psql/commit/0a1f19b8dfb2272eb564eaabfad19f813128bf2e))
+
 ## [2.0.8](https://github.com/patrixr/pi-psql/compare/v2.0.7...v2.0.8) (2026-04-21)
 
 
