@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/patrixr/pi-psql/compare/v2.0.0...v2.0.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* test publish workflow trigger on tag creation ([648a004](https://github.com/patrixr/pi-psql/commit/648a0046f04acf30bb7fffd2dedda8c29f1c0c4f))
+
 # [2.0.0](https://github.com/patrixr/pi-psql/compare/v1.1.0...v2.0.0) (2026-04-21)
 
 
