@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/patrixr/pi-psql/compare/v2.0.1...v2.0.2) (2026-04-21)
+
+
+### Bug Fixes
+
+* use GH_PAT to trigger publish workflow on tag creation ([27dbd22](https://github.com/patrixr/pi-psql/commit/27dbd220de0acf0f206d158c95119c4e20762afc))
+
 ## [2.0.1](https://github.com/patrixr/pi-psql/compare/v2.0.0...v2.0.1) (2026-04-21)
 
 
