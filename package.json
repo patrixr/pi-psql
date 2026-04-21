@@ -1,6 +1,6 @@
 {
   "name": "pi-psql",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Secure PostgreSQL client skill for pi - query databases with encrypted credentials",
   "keywords": [
     "pi-package",

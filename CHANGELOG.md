@@ -1,3 +1,10 @@
+## [2.0.5](https://github.com/patrixr/pi-psql/compare/v2.0.4...v2.0.5) (2026-04-21)
+
+
+### Bug Fixes
+
+* add publishConfig and NPM_CONFIG_PROVENANCE env var ([04b4bef](https://github.com/patrixr/pi-psql/commit/04b4bef8de9f7ad749fa9ce6a4da10ba79cb7e38))
+
 ## [2.0.4](https://github.com/patrixr/pi-psql/compare/v2.0.3...v2.0.4) (2026-04-21)
 
 
