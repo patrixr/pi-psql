@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/patrixr/pi-psql/compare/v1.0.0...v1.1.0) (2026-04-21)
+
+
+### Features
+
+* enable semantic-release automation ([6eaf150](https://github.com/patrixr/pi-psql/commit/6eaf1507f2f12314dede92a388c9578fc586cad8))
+
 # 1.0.0 (2026-04-20)
 
 
