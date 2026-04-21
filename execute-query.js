@@ -48,7 +48,7 @@ async function main() {
       const list = core.listConnections();
       
       if (list.connections.length === 0) {
-        console.log('\nNo connections configured. Use "node cli.js add" to create one.\n');
+        console.log('\nNo connections configured. Use "node launch-connection-manager.js" to create one.\n');
         process.exit(0);
       }
       
@@ -116,7 +116,7 @@ async function main() {
     
     if (error.message.includes('not found')) {
       console.error('\nUse "node query.js --list" to see available connections');
-      console.error('Or create one with "node cli.js add"\n');
+      console.error('Or create one with "node launch-connection-manager.js"\n');
     }
     
     process.exit(1);
