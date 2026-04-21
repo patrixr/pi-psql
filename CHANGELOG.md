@@ -1,3 +1,10 @@
+## [2.0.8](https://github.com/patrixr/pi-psql/compare/v2.0.7...v2.0.8) (2026-04-21)
+
+
+### Bug Fixes
+
+* remove npm token from pipeline ([bec4845](https://github.com/patrixr/pi-psql/commit/bec484535f4f7ae77c6c46d7a69238e15c07ba0e))
+
 ## [2.0.7](https://github.com/patrixr/pi-psql/compare/v2.0.6...v2.0.7) (2026-04-21)
 
 
