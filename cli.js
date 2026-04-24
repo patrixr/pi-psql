@@ -348,7 +348,7 @@ yargs(hideBin(process.argv))
     'Open the connection manager web UI to add, edit, or remove connections',
     (y) => y.example([['$0 open-connection-manager', 'Open connection manager in browser']]),
     async () => {
-      const { start } = require('./launch-connection-manager');
+      const { start } = require('./core/connection-manager');
       await start();
     }
   )

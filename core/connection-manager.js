@@ -1,10 +1,12 @@
-#!/usr/bin/env node
 'use strict';
 
 const express = require('express');
 const open    = require('open');
 const path    = require('path');
-const core    = require('./core');
+const core    = require('.');
+
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const KEY_PATH   = path.join(__dirname, '..', '.key');
 
 /**
  * Start the connection manager web server.
@@ -14,7 +16,7 @@ function start() {
   return new Promise((resolve, reject) => {
     const app = express();
     app.use(express.json());
-    app.use(express.static(path.join(__dirname, 'public')));
+    app.use(express.static(PUBLIC_DIR));
 
     // List connections (names only — no credentials)
     app.get('/api/connections', (req, res) => {
@@ -84,15 +86,14 @@ function start() {
 
     // Encryption key info (path only — no key material)
     app.get('/api/key-info', (req, res) => {
-      const fs      = require('fs');
-      const keyPath = path.join(__dirname, '.key');
-      res.json({ keyPath, keyExists: fs.existsSync(keyPath) });
+      const fs = require('fs');
+      res.json({ keyPath: KEY_PATH, keyExists: fs.existsSync(KEY_PATH) });
     });
 
     // Health check
     app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
-    // Done — shut down and unblock the CLI
+    // Done — shut down and unblock the caller
     app.post('/api/shutdown', (req, res) => {
       res.json({ success: true });
       console.log('\nShutting down connection manager...');
@@ -114,7 +115,6 @@ function start() {
       try {
         await open(url);
       } catch {
-        // Fallback for WSL / headless environments
         const { exec } = require('child_process');
         for (const cmd of [
           `xdg-open "${url}"`,
@@ -132,14 +132,6 @@ function start() {
 
     process.on('SIGINT',  () => server.close(() => resolve()));
     process.on('SIGTERM', () => server.close(() => resolve()));
-  });
-}
-
-// Allow running directly: `node launch-connection-manager.js`
-if (require.main === module) {
-  start().catch(err => {
-    console.error(err);
-    process.exit(1);
   });
 }
 

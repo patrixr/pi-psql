@@ -15,15 +15,15 @@ Thank you for your interest in contributing! This document provides guidelines f
    npm install
    ```
 
-3. **Make the scripts executable:**
+3. **Make the CLI executable:**
    ```bash
-   chmod +x execute-query.js launch-connection-manager.js
+   chmod +x cli.js
    ```
 
 4. **Test locally:**
    ```bash
-   ./execute-query.js --help
-   ./launch-connection-manager.js
+   ./cli.js --help
+   ./cli.js open-connection-manager
    ```
 
 ## Commit Message Convention
@@ -107,11 +107,15 @@ git commit -m "chore: update dependencies"
 
 ### Manual Testing
 ```bash
-# Test help
-./execute-query.js --help
+# Test CLI help
+./cli.js --help
 
-# Test connection manager
-./launch-connection-manager.js
+# Test a specific command
+./cli.js connections
+./cli.js test
+
+# Launch the connection manager
+./cli.js open-connection-manager
 
 # Test core modules
 node -e "const core = require('./core'); console.log('OK');"
