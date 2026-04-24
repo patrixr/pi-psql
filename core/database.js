@@ -85,13 +85,27 @@ async function getDatabaseInfo(connectionData) {
 }
 
 /**
- * List all tables
+ * List all tables, optionally filtered by schema
  */
-async function listTables(connectionData) {
+async function listTables(connectionData, schema) {
+  if (schema) {
+    const query = `
+      SELECT
+        schemaname as schema,
+        tablename  as table,
+        tableowner as owner
+      FROM pg_catalog.pg_tables
+      WHERE schemaname = $1
+      ORDER BY tablename;
+    `;
+    const result = await executeQuery(connectionData, { text: query, values: [schema] });
+    return result.rows;
+  }
+
   const query = `
-    SELECT 
+    SELECT
       schemaname as schema,
-      tablename as table,
+      tablename  as table,
       tableowner as owner
     FROM pg_catalog.pg_tables
     WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
@@ -102,21 +116,70 @@ async function listTables(connectionData) {
 }
 
 /**
- * Describe table schema
+ * List all views, optionally filtered by schema
  */
-async function describeTable(connectionData, tableName) {
+async function listViews(connectionData, schema) {
+  if (schema) {
+    const query = `
+      SELECT
+        schemaname as schema,
+        viewname   as view,
+        viewowner  as owner
+      FROM pg_catalog.pg_views
+      WHERE schemaname = $1
+      ORDER BY viewname;
+    `;
+    const result = await executeQuery(connectionData, { text: query, values: [schema] });
+    return result.rows;
+  }
+
   const query = `
-    SELECT 
+    SELECT
+      schemaname as schema,
+      viewname   as view,
+      viewowner  as owner
+    FROM pg_catalog.pg_views
+    WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+    ORDER BY schemaname, viewname;
+  `;
+  const result = await executeQuery(connectionData, query);
+  return result.rows;
+}
+
+/**
+ * Describe table columns, with optional schema qualification
+ */
+async function describeTable(connectionData, tableName, schema = 'public') {
+  const query = `
+    SELECT
       column_name,
       data_type,
       is_nullable,
       column_default,
       character_maximum_length
     FROM information_schema.columns
-    WHERE table_name = $1
+    WHERE table_name   = $1
+      AND table_schema = $2
     ORDER BY ordinal_position;
   `;
-  const result = await executeQuery(connectionData, { text: query, values: [tableName] });
+  const result = await executeQuery(connectionData, { text: query, values: [tableName, schema] });
+  return result.rows;
+}
+
+/**
+ * List indexes on a table
+ */
+async function listIndexes(connectionData, tableName, schema = 'public') {
+  const query = `
+    SELECT
+      indexname  as index,
+      indexdef   as definition
+    FROM pg_indexes
+    WHERE tablename  = $1
+      AND schemaname = $2
+    ORDER BY indexname;
+  `;
+  const result = await executeQuery(connectionData, { text: query, values: [tableName, schema] });
   return result.rows;
 }
 
@@ -126,5 +189,7 @@ module.exports = {
   executeQuery,
   getDatabaseInfo,
   listTables,
-  describeTable
+  listViews,
+  describeTable,
+  listIndexes,
 };

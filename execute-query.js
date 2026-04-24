@@ -14,6 +14,7 @@ async function main() {
       console.log('  execute-query.js --info              # Database info');
       console.log('  execute-query.js --tables            # List all tables');
       console.log('  execute-query.js --describe <table>  # Describe table schema');
+      console.log('  execute-query.js --file <path>       # Execute SQL from a file');
       console.log('  execute-query.js --ui                # Launch connection manager (manual use)');
       console.log('\nNote: Use launch-connection-manager.js to add/modify connections');
       process.exit(0);
@@ -94,6 +95,26 @@ async function main() {
       console.log(`\n=== Table: ${commandArgs[1]} ===`);
       console.table(schema);
       
+    } else if (commandArgs[0] === '--file' && commandArgs[1]) {
+      const fs = require('fs');
+      const filePath = commandArgs[1];
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+      const query = fs.readFileSync(filePath, 'utf8');
+      console.log(`\n📄 Executing file: ${filePath}`);
+      result = await core.executeQuery(connection, query);
+
+      console.log(`\n=== Query Results ===`);
+      console.log(`Rows returned: ${result.rowCount || 0}`);
+
+      if (result.rows && result.rows.length > 0) {
+        console.table(result.rows);
+      } else if (result.command) {
+        console.log(`Command: ${result.command}`);
+        console.log(`Rows affected: ${result.rowCount}`);
+      }
+
     } else {
       const query = commandArgs.join(' ');
       result = await core.executeQuery(connection, query);
