@@ -35,8 +35,8 @@ jobs:
       
       - name: Run tests
         run: |
-          chmod +x execute-query.js launch-connection-manager.js
-          ./execute-query.js --help
+          chmod +x cli.js
+          ./cli.js --help
           node -e "const core = require('./core'); console.log('✅ Core modules load successfully');"
       
       - name: Semantic Release (creates tag)
