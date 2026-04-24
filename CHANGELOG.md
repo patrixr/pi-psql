@@ -1,3 +1,12 @@
+# [2.1.0](https://github.com/patrixr/pi-psql/compare/v2.0.9...v2.1.0) (2026-04-24)
+
+
+### Features
+
+* **cli:** add unified cli.js entry point with yargs subcommands ([b0d8c54](https://github.com/patrixr/pi-psql/commit/b0d8c54fab16bc21d238fb8812d83888f7caa003))
+* **database:** add listViews, listIndexes and schema filtering ([0054127](https://github.com/patrixr/pi-psql/commit/0054127d8cbd62ed251db13ce622a818100fe1ea))
+* **ui:** restyle connection manager with Catppuccin TUI theme ([1868f0f](https://github.com/patrixr/pi-psql/commit/1868f0f5d86728c921141f7f9c9cddd93a38d0ae))
+
 ## [2.0.9](https://github.com/patrixr/pi-psql/compare/v2.0.8...v2.0.9) (2026-04-21)
 
 
