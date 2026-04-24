@@ -348,17 +348,8 @@ yargs(hideBin(process.argv))
     'Open the connection manager web UI to add, edit, or remove connections',
     (y) => y.example([['$0 open-connection-manager', 'Open connection manager in browser']]),
     async () => {
-      const { spawn } = require('child_process');
-      const path      = require('path');
-      const proc = spawn('node', [path.join(__dirname, 'launch-connection-manager.js')], {
-        stdio: 'inherit',
-      });
-      process.on('SIGINT', () => { proc.kill(); process.exit(0); });
-      // Block until the user clicks Done in the UI (server shuts down cleanly)
-      await new Promise((resolve, reject) => {
-        proc.on('close', resolve);
-        proc.on('error', reject);
-      });
+      const { start } = require('./launch-connection-manager');
+      await start();
     }
   )
 
