@@ -1,121 +1,137 @@
-// API helpers
+// ── API ───────────────────────────────────────────────────────────────────────
+
 async function api(endpoint, options = {}) {
   const response = await fetch(`/api${endpoint}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers: { 'Content-Type': 'application/json', ...options.headers },
   });
-  
   const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.error || 'Request failed');
-  }
-  
+  if (!response.ok) throw new Error(data.error || 'Request failed');
   return data;
 }
 
-// Notification system
+// ── Notifications ─────────────────────────────────────────────────────────────
+
 function showNotification(message, type = 'success') {
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
+  document.querySelectorAll('.notification').forEach(n => n.remove());
+  const el = document.createElement('div');
+  el.className = `notification ${type}`;
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
 }
 
-// Load connections
-async function loadConnections() {
-  try {
-    const data = await api('/connections');
-    renderConnections(data);
-  } catch (error) {
-    showNotification(error.message, 'error');
-  }
-}
+// ── State ─────────────────────────────────────────────────────────────────────
 
-// Render connections list
+let connectionsData = [];
+let selectedIndex   = -1;
+
+// ── Render connections ────────────────────────────────────────────────────────
+
 function renderConnections(data) {
+  connectionsData = data.connections;
   const container = document.getElementById('connections-container');
-  
-  if (data.connections.length === 0) {
+  const countEl   = document.getElementById('conn-count');
+
+  if (countEl) {
+    countEl.textContent = connectionsData.length
+      ? `${connectionsData.length} connection${connectionsData.length !== 1 ? 's' : ''}`
+      : '';
+  }
+
+  if (connectionsData.length === 0) {
+    selectedIndex = -1;
     container.innerHTML = `
       <div class="empty-state">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-        </svg>
-        <p>No connections yet</p>
-        <p style="font-size: 12px; margin-top: 8px;">Click "Add Connection" to get started</p>
-      </div>
-    `;
+        <div class="empty-box">
+          No connections configured.<br>
+          Press <kbd style="border:1px solid var(--border);padding:0 4px;color:var(--accent);font-family:inherit;">[A]</kbd> or click Add Connection to get started.
+        </div>
+      </div>`;
     return;
   }
-  
-  const html = `
-    <ul class="connection-list">
-      ${data.connections.map(conn => `
-        <li class="connection-item">
-          <div class="connection-info">
-            <div class="connection-name">
-              ${conn.name}
-              ${conn.isDefault ? '<span class="badge">DEFAULT</span>' : ''}
-            </div>
-            <div class="connection-type">${conn.type}</div>
-          </div>
-          <div class="connection-actions">
-            <button class="btn btn-secondary btn-small" onclick="testConnection('${conn.name}')">
-              Test
-            </button>
-            ${!conn.isDefault ? `
-              <button class="btn btn-secondary btn-small" onclick="setDefault('${conn.name}')">
-                Set Default
-              </button>
-            ` : ''}
-            <button class="btn btn-danger btn-small" onclick="deleteConnection('${conn.name}')">
-              Delete
-            </button>
-          </div>
-        </li>
-      `).join('')}
-    </ul>
-  `;
-  
-  container.innerHTML = html;
+
+  if (selectedIndex < 0) selectedIndex = 0;
+  selectedIndex = Math.min(selectedIndex, connectionsData.length - 1);
+
+  container.innerHTML = `
+    <table class="conn-table">
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>TYPE</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${connectionsData.map((conn, i) => `
+          <tr class="conn-row${i === selectedIndex ? ' selected' : ''}"
+              data-index="${i}"
+              onclick="selectRow(${i})">
+            <td>
+              <span class="conn-cursor">${i === selectedIndex ? '▶' : ' '}</span>
+              <span class="conn-name">${conn.name}</span>
+              ${conn.isDefault ? '<span class="badge-default">[DEFAULT]</span>' : ''}
+            </td>
+            <td><span class="conn-type">${conn.type}</span></td>
+            <td>
+              <div class="conn-actions">
+                <button class="btn" onclick="event.stopPropagation(); testConnection('${conn.name}')">[T]est</button>
+                ${!conn.isDefault
+                  ? `<button class="btn" onclick="event.stopPropagation(); setDefault('${conn.name}')">[★] Default</button>`
+                  : ''}
+                <button class="btn btn-danger" onclick="event.stopPropagation(); deleteConnection('${conn.name}')">[D]el</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
 }
 
-// Load encryption key info
+function selectRow(index) {
+  selectedIndex = index;
+  document.querySelectorAll('.conn-row').forEach((row, i) => {
+    row.classList.toggle('selected', i === index);
+    const cursor = row.querySelector('.conn-cursor');
+    if (cursor) cursor.textContent = i === index ? '▶' : ' ';
+  });
+}
+
+// ── Load data ─────────────────────────────────────────────────────────────────
+
+async function loadConnections() {
+  try {
+    renderConnections(await api('/connections'));
+  } catch (e) {
+    showNotification(e.message, 'error');
+  }
+}
+
 async function loadKeyInfo() {
   try {
     const data = await api('/key-info');
-    const container = document.getElementById('key-info');
-    
-    if (data.keyExists) {
-      container.innerHTML = `
-        <p><strong>Encryption Key Location:</strong></p>
-        <p style="font-family: monospace; font-size: 12px;">${data.keyPath}</p>
-      `;
-    } else {
-      container.innerHTML = `
-        <p><strong>Encryption Key:</strong></p>
-        <p>Will be auto-generated on first connection save</p>
-      `;
-    }
-  } catch (error) {
-    console.error('Failed to load key info:', error);
+    const el   = document.getElementById('key-info');
+    el.textContent = data.keyExists
+      ? data.keyPath
+      : 'Auto-generated on first connection save';
+    el.style.color = data.keyExists ? '' : 'var(--fg-dim)';
+  } catch (e) {
+    console.error('Failed to load key info:', e);
   }
 }
 
-// Modal functions
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
 function openAddModal() {
-  document.getElementById('modal-title').textContent = 'Add Connection';
+  document.getElementById('modal-title').textContent = 'ADD CONNECTION';
   document.getElementById('connection-form').reset();
+  // Reset visibility
+  document.getElementById('params-section').style.display = 'block';
+  document.getElementById('string-section').style.display  = 'none';
+  document.getElementById('params-ssl-row').style.display  = 'block';
   document.getElementById('connection-modal').classList.add('active');
+  setTimeout(() => document.getElementById('conn-name').focus(), 50);
 }
 
 function closeModal() {
@@ -123,146 +139,169 @@ function closeModal() {
 }
 
 function toggleConnectionType() {
-  const type = document.querySelector('input[name="conn-type"]:checked').value;
-  const paramsSection = document.getElementById('params-section');
-  const stringSection = document.getElementById('string-section');
-  
+  const type        = document.querySelector('input[name="conn-type"]:checked').value;
+  const paramsBlock = document.getElementById('params-section');
+  const stringBlock = document.getElementById('string-section');
+  const sslRow      = document.getElementById('params-ssl-row');
+
   if (type === 'params') {
-    paramsSection.style.display = 'block';
-    stringSection.style.display = 'none';
-    // Set required attributes
-    document.querySelectorAll('#params-section input').forEach(input => {
-      if (input.id !== 'conn-password') input.required = true;
+    paramsBlock.style.display = 'block';
+    stringBlock.style.display = 'none';
+    sslRow.style.display      = 'block';
+    document.querySelectorAll('#params-section input').forEach(i => {
+      if (i.id !== 'conn-password') i.required = true;
     });
     document.getElementById('conn-string').required = false;
   } else {
-    paramsSection.style.display = 'none';
-    stringSection.style.display = 'block';
-    // Set required attributes
-    document.querySelectorAll('#params-section input').forEach(input => {
-      input.required = false;
-    });
+    paramsBlock.style.display = 'none';
+    stringBlock.style.display = 'block';
+    sslRow.style.display      = 'none';
+    document.querySelectorAll('#params-section input').forEach(i => i.required = false);
     document.getElementById('conn-string').required = true;
   }
 }
 
-// Save connection
+// ── Save connection ───────────────────────────────────────────────────────────
+
 async function saveConnection(event) {
   event.preventDefault();
-  
-  const name = document.getElementById('conn-name').value;
-  const type = document.querySelector('input[name="conn-type"]:checked').value;
+
+  const name      = document.getElementById('conn-name').value;
+  const type      = document.querySelector('input[name="conn-type"]:checked').value;
   const testFirst = document.getElementById('conn-test').checked;
-  
+
   let connectionData;
-  
   if (type === 'params') {
-    const sslMode = document.getElementById('conn-ssl-mode').value;
+    const sslMode    = document.getElementById('conn-ssl-mode').value;
     connectionData = {
-      host: document.getElementById('conn-host').value,
-      port: parseInt(document.getElementById('conn-port').value),
+      host:     document.getElementById('conn-host').value,
+      port:     parseInt(document.getElementById('conn-port').value),
       database: document.getElementById('conn-database').value,
-      user: document.getElementById('conn-user').value,
+      user:     document.getElementById('conn-user').value,
       password: document.getElementById('conn-password').value,
-      ssl: sslMode !== 'disable',
-      sslMode: sslMode
+      ssl:      sslMode !== 'disable',
+      sslMode,
     };
   } else {
-    const sslMode = document.getElementById('conn-string-ssl-mode').value;
+    const sslMode    = document.getElementById('conn-string-ssl-mode').value;
     connectionData = {
       connectionString: document.getElementById('conn-string').value,
-      ssl: sslMode !== 'disable',
-      sslMode: sslMode
+      ssl:              sslMode !== 'disable',
+      sslMode,
     };
   }
-  
+
   try {
     await api('/connections', {
       method: 'POST',
-      body: JSON.stringify({ name, connectionData, testFirst })
+      body:   JSON.stringify({ name, connectionData, testFirst }),
     });
-    
-    showNotification(`Connection '${name}' saved successfully!`);
+    showNotification(`Connection '${name}' saved`);
     closeModal();
     loadConnections();
-  } catch (error) {
-    showNotification(error.message, 'error');
+  } catch (e) {
+    showNotification(e.message, 'error');
   }
 }
 
-// Test connection
+// ── Connection actions ────────────────────────────────────────────────────────
+
 async function testConnection(name) {
+  showNotification(`Testing ${name}...`);
   try {
-    showNotification('Testing connection...', 'success');
-    const result = await api(`/connections/${name}/test`, { method: 'POST' });
-    
-    showNotification(
-      `✓ Connected to ${result.database} as ${result.user}`,
-      'success'
-    );
-  } catch (error) {
-    showNotification(`Connection failed: ${error.message}`, 'error');
+    const r = await api(`/connections/${name}/test`, { method: 'POST' });
+    showNotification(`✓ ${name} → ${r.database} (${r.user})`);
+  } catch (e) {
+    showNotification(`${name}: ${e.message}`, 'error');
   }
 }
 
-// Set default connection
 async function setDefault(name) {
   try {
     await api(`/connections/${name}/default`, { method: 'PUT' });
-    showNotification(`'${name}' set as default`);
+    showNotification(`'${name}' is now the default`);
     loadConnections();
-  } catch (error) {
-    showNotification(error.message, 'error');
+  } catch (e) {
+    showNotification(e.message, 'error');
   }
 }
 
-// Delete connection
 async function deleteConnection(name) {
-  if (!confirm(`Delete connection '${name}'?`)) {
-    return;
-  }
-  
+  if (!confirm(`Delete connection '${name}'?`)) return;
   try {
     await api(`/connections/${name}`, { method: 'DELETE' });
-    showNotification(`Connection '${name}' deleted`);
+    showNotification(`'${name}' deleted`);
+    if (selectedIndex >= connectionsData.length - 1) selectedIndex--;
     loadConnections();
-  } catch (error) {
-    showNotification(error.message, 'error');
+  } catch (e) {
+    showNotification(e.message, 'error');
   }
 }
 
-// Close modal on background click
-document.getElementById('connection-modal').addEventListener('click', (e) => {
-  if (e.target.id === 'connection-modal') {
-    closeModal();
+// ── Shutdown ──────────────────────────────────────────────────────────────────
+
+async function shutdownServer() {
+  if (!confirm('Close the connection manager?')) return;
+  try { await api('/shutdown', { method: 'POST' }); } catch (_) { /* already closing */ }
+  document.body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                height:100vh;gap:12px;font-family:'Courier New',monospace;background:#1e2030;color:#a5adcb;">
+      <div style="border:1px solid #363b54;padding:28px 40px;text-align:center;background:#24273a;">
+        <div style="color:#8aadf4;font-size:13px;margin-bottom:10px;letter-spacing:1px;">psql-manager</div>
+        <div style="color:#cad3f5;margin-bottom:6px;">Session closed.</div>
+        <div style="color:#6e738d;font-size:11px;">All credentials remain encrypted at rest.</div>
+        <div style="color:#6e738d;font-size:11px;margin-top:4px;">You can close this tab.</div>
+      </div>
+    </div>`;
+}
+
+// ── Keyboard navigation ───────────────────────────────────────────────────────
+
+document.addEventListener('keydown', (e) => {
+  // Don't intercept when typing in a form field
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+
+  const modalOpen = document.getElementById('connection-modal').classList.contains('active');
+
+  if (modalOpen) {
+    if (e.key === 'Escape') closeModal();
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowUp':
+      e.preventDefault();
+      if (selectedIndex > 0) selectRow(selectedIndex - 1);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      if (selectedIndex < connectionsData.length - 1) selectRow(selectedIndex + 1);
+      break;
+    case 'a': case 'A':
+      openAddModal();
+      break;
+    case 't': case 'T':
+      if (connectionsData[selectedIndex]) testConnection(connectionsData[selectedIndex].name);
+      break;
+    case 'd': case 'D': case 'Delete':
+      if (connectionsData[selectedIndex]) deleteConnection(connectionsData[selectedIndex].name);
+      break;
+    case 's': case 'S':
+      if (connectionsData[selectedIndex] && !connectionsData[selectedIndex].isDefault)
+        setDefault(connectionsData[selectedIndex].name);
+      break;
+    case 'F10':
+    case 'q': case 'Q':
+      shutdownServer();
+      break;
   }
 });
 
-// Shutdown server
-async function shutdownServer() {
-  if (!confirm('Close the connection manager?')) {
-    return;
-  }
-  
-  try {
-    await api('/shutdown', { method: 'POST' });
-    document.body.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column;">
-        <h1 style="color: white; margin-bottom: 16px;">✓ Done</h1>
-        <p style="color: white; opacity: 0.9;">Connection manager closed. You can close this tab.</p>
-      </div>
-    `;
-  } catch (error) {
-    // Server already shut down, that's ok
-    document.body.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column;">
-        <h1 style="color: white; margin-bottom: 16px;">✓ Done</h1>
-        <p style="color: white; opacity: 0.9;">Connection manager closed. You can close this tab.</p>
-      </div>
-    `;
-  }
-}
+// Close modal on backdrop click
+document.getElementById('connection-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'connection-modal') closeModal();
+});
 
-// Initialize
+// ── Init ──────────────────────────────────────────────────────────────────────
 loadConnections();
 loadKeyInfo();
