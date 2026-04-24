@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/patrixr/pi-psql/compare/v2.1.0...v2.2.0) (2026-04-24)
+
+
+### Features
+
+* **cli:** make --connection required on all data commands ([b4db559](https://github.com/patrixr/pi-psql/commit/b4db559f7b0dcb5b5c73af251606a3e298be63b9))
+
 # [2.1.0](https://github.com/patrixr/pi-psql/compare/v2.0.9...v2.1.0) (2026-04-24)
 
 
