@@ -8,11 +8,11 @@ A secure PostgreSQL client skill for [pi coding agent](https://pi.dev). Query da
 
 ## Features
 
-- 🔐 **Secure**: Credentials encrypted at rest with auto-generated key
-- 🤖 **AI-Safe**: Agent can query but never see passwords
-- 🌐 **Easy Setup**: Web UI for managing connections
-- 🔍 **Full-Featured**: Query execution, schema inspection, table exploration
-- 📦 **Portable**: Everything self-contained in skill directory
+- 🔐 **Secure** — Credentials encrypted at rest with AES-256-GCM
+- 🤖 **AI-Safe** — Agent can query but never see passwords or connection strings
+- 🖥️ **Unified CLI** — All commands through a single `pi-psql` entry point
+- 🌐 **Easy Setup** — TUI-styled web UI for managing connections
+- 🔍 **Full Introspection** — Query, schema inspection, tables, views, indexes
 
 ## Installation
 
@@ -22,7 +22,7 @@ A secure PostgreSQL client skill for [pi coding agent](https://pi.dev). Query da
 pi install git:github.com/patrixr/pi-psql
 ```
 
-Or install manually:
+Or manually:
 
 ```bash
 cd ~/.pi/agent/skills
@@ -42,92 +42,93 @@ npm install
 
 ## Setup
 
-### 1. Launch the connection manager
+### 1. Open the connection manager
 
 ```bash
-cd ~/.pi/agent/skills/pi-psql
-./launch-connection-manager.js
+./cli.js open-connection-manager
 ```
 
-This opens a web interface where you can:
-- Add database connections
-- Test connections before saving
-- Set a default connection
-- Manage existing connections
+This opens a local web UI where you can add, test, and manage connections. The command **blocks** until you click **Done — return to agent**, making it safe to use from within an AI session.
 
-**Security:** The web server runs locally (localhost:9876). All data stays on your machine. The AI can never see your browser interactions.
+**Security:** The web server runs on `localhost:9876`. All data stays on your machine. The AI cannot observe your browser interactions.
 
 ### 2. Add a connection
 
 In the web UI:
-1. Click "Add Connection"
-2. Fill in connection details (host, port, database, username, password)
-3. Optionally configure SSL mode
-4. Test the connection
-5. Save
+1. Click **[A] Add Connection**
+2. Fill in connection details or paste a connection string
+3. Choose SSL mode if needed
+4. Optionally test before saving
+5. Click Save
 
-Your credentials are immediately encrypted and stored in `connections.enc`.
+Credentials are immediately encrypted and stored in `connections.enc`.
 
-### 3. Use with AI
+### 3. Use with the AI
 
-Once connections are set up, tell the AI to use them:
+Once connections are configured, the AI uses them automatically via `cli.js`.
 
-> "Query the production database and show me the top 10 users by order count"
+## CLI Reference
 
-The AI will use the skill automatically.
+All commands go through the unified CLI:
 
-## How It Works
-
-### For Humans
-
-You manage connections through a web UI:
-- Web interface runs on `localhost:9876`
-- Add, test, and delete connections
-- All credentials encrypted before storage
-- Encryption key auto-generated on first use
-
-### For AI Agents
-
-The AI can only:
-- ✅ List available connections
-- ✅ Execute SQL queries
-- ✅ Inspect schemas and tables
-- ❌ Cannot see passwords or connection strings
-- ❌ Cannot create/modify connections
-- ❌ Cannot access encryption key
-
-## Usage
-
-### AI Commands
-
-The AI agent uses `execute-query.js`:
-
-```bash
-# List connections
-./execute-query.js --list
-
-# Query default database
-./execute-query.js "SELECT * FROM users LIMIT 5"
-
-# Query specific connection
-./execute-query.js --connection analytics "SELECT COUNT(*) FROM events"
-
-# Database info
-./execute-query.js --info
-./execute-query.js --tables
-./execute-query.js --describe users
+```
+./cli.js <command> [options]
 ```
 
-### Manual Connection Management
+### Global Options
 
-Humans use `launch-connection-manager.js`:
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--connection <name>` | `-c` | Connection to use (defaults to the configured default) |
+| `--format <fmt>` | `-f` | Output format: `table` (default), `json`, `csv` |
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `query [sql]` | Execute a SQL statement |
+| `tables` | List all tables |
+| `views` | List all views |
+| `describe <table>` | Show column definitions for a table |
+| `indexes <table>` | List indexes on a table |
+| `info` | Show database server info |
+| `connections` | List configured connections |
+| `test [connection]` | Test a connection |
+| `open-connection-manager` | Open the web UI to add/edit/remove connections |
+
+Run `./cli.js --help` or `./cli.js <command> --help` for full usage.
+
+### Examples
 
 ```bash
-./launch-connection-manager.js
-# Opens web UI at http://localhost:9876
+# See what's available
+./cli.js connections
+./cli.js info
+
+# Run queries
+./cli.js query "SELECT * FROM users LIMIT 10"
+./cli.js query --file ./report.sql
+./cli.js query "SELECT COUNT(*) FROM orders" --connection production
+
+# Explore the schema
+./cli.js tables
+./cli.js views --schema reporting
+./cli.js describe users
+./cli.js describe analytics.events   # schema.table notation
+./cli.js indexes orders
+
+# Machine-readable output
+./cli.js query "SELECT id, email FROM users" --format json | jq '.[].email'
+./cli.js tables --format csv > tables.csv
+
+# Test a connection
+./cli.js test production
+
+# Manage connections
+./cli.js open-connection-manager
 ```
 
-## Security
+## Security Model
 
 ### Encryption
 
@@ -135,79 +136,41 @@ Humans use `launch-connection-manager.js`:
 - **Key**: Auto-generated 256-bit key stored in `.key`
 - **Storage**: Encrypted credentials in `connections.enc`
 
-### What's Protected
+### What the AI Can Do
 
-- Database passwords (encrypted)
-- Connection strings (encrypted)
-- Encryption key (file-based, excluded from git)
+- ✅ List connection names
+- ✅ Execute SQL queries
+- ✅ Inspect schemas, tables, views, indexes
+- ✅ Test connections
 
 ### What the AI Cannot Do
 
-- Read `.key` file (would need file system access outside skill scope)
-- Decrypt `connections.enc` (needs the key)
-- See your browser interactions (web UI traffic is local)
+- ❌ See passwords or connection strings
+- ❌ Create or modify connections (only the human via web UI)
+- ❌ Access the encryption key
 
 ### Backup Your Key
-
-To backup your encryption key:
 
 ```bash
 cat ~/.pi/agent/skills/pi-psql/.key
 ```
 
-**Important:** If you lose the `.key` file, you'll lose access to your encrypted connections.
+> **Important:** If you lose `.key`, you lose access to your encrypted connections. Back it up securely.
 
-## Examples
-
-### Basic Query
-
-```bash
-./execute-query.js "SELECT version()"
-```
-
-### Specific Connection
-
-```bash
-./execute-query.js --connection production "
-  SELECT 
-    date_trunc('day', created_at) as day,
-    COUNT(*) as orders
-  FROM orders
-  WHERE created_at > NOW() - INTERVAL '30 days'
-  GROUP BY day
-  ORDER BY day DESC
-"
-```
-
-### Schema Exploration
-
-```bash
-# List all tables
-./execute-query.js --tables
-
-# Describe a table
-./execute-query.js --describe orders
-
-# Get database info
-./execute-query.js --info
-```
-
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 pi-psql/
-├── SKILL.md                      # Agent instructions
+├── SKILL.md                      # Agent-facing instructions (read by AI)
 ├── README.md                     # Human documentation (this file)
-├── execute-query.js              # AI interface
+├── cli.js                        # Unified CLI entry point
 ├── launch-connection-manager.js  # Web UI server
-├── core/                         # Shared libraries
-│   ├── crypto.js                 # Encryption
+├── core/
+│   ├── crypto.js                 # AES-256-GCM encryption
 │   ├── storage.js                # Connection storage
-│   ├── database.js               # Query execution
+│   ├── database.js               # Query execution & introspection
 │   └── index.js                  # Exports
-├── public/                       # Web UI assets
+├── public/                       # Connection manager web UI
 │   ├── index.html
 │   └── app.js
 ├── .key                          # Encryption key (gitignored)
@@ -215,69 +178,40 @@ pi-psql/
 └── package.json
 ```
 
-### Publishing to npm
-
-1. Remove `"private": true` from `package.json`
-2. Add npm metadata (repository, keywords, etc.)
-3. `npm publish`
-
 ## Troubleshooting
 
 ### "Connection not found"
 
-The connection name doesn't exist. Run:
+Run `./cli.js connections` to see what's available. If empty, open the connection manager:
+
 ```bash
-./execute-query.js --list
+./cli.js open-connection-manager
 ```
 
-If empty, launch the connection manager and add a connection:
-```bash
-./launch-connection-manager.js
-```
+### Port already in use
 
-### "Cannot read .key file"
-
-The encryption key is missing. On first use, it auto-generates. If you deleted it and have encrypted connections, you'll need to re-add them.
-
-### Web UI won't open
-
-Check if port 9876 is already in use:
 ```bash
 lsof -i :9876
 ```
 
-Kill the process or edit `launch-connection-manager.js` to use a different port.
+Kill the process or set a different port with `POSTGRES_CLIENT_PORT=9877 ./cli.js open-connection-manager`.
 
-## License
+### Lost encryption key
 
-MIT
+If `.key` is missing and `connections.enc` exists, you'll need to re-add all connections. Delete `connections.enc` and run `open-connection-manager` to start fresh.
+
+## Publishing
+
+This package uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning. Push conventional commits to `main` and releases are handled automatically.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [.github/PUBLISHING.md](.github/PUBLISHING.md) for details.
 
 ## Contributing
 
 Issues and PRs welcome at https://github.com/patrixr/pi-psql
 
-## Publishing
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md) and use [conventional commits](https://www.conventionalcommits.org/).
 
-This package uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning and publishing.
+## License
 
-**To release a new version:**
-1. Use [conventional commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `BREAKING CHANGE:`
-2. Push to main branch
-3. semantic-release automatically versions, tags, and publishes
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for commit message guidelines and [.github/PUBLISHING.md](.github/PUBLISHING.md) for detailed publishing docs.
-
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-**Quick start:**
-- Use conventional commits: `feat:`, `fix:`, etc.
-- Create PRs against `main` branch
-- semantic-release handles versioning automatically
-
-## Code of Conduct
-
-This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
-
+MIT
