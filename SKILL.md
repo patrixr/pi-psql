@@ -1,6 +1,6 @@
 ---
 name: pi-psql
-description: Secure PostgreSQL client with AES-256-GCM encrypted credentials. Run SQL queries, inspect schemas, list tables and views, explore indexes, and check connection health. Use when working with PostgreSQL databases. Connections are managed by humans separately via a web UI — you can only use existing connections by name.
+description: Secure PostgreSQL client with AES-256-GCM encrypted credentials. Run SQL queries, inspect schemas, list tables and views, explore indexes, and check connection health. Use when working with PostgreSQL databases. Connections are managed by humans via a browser UI — run `./cli.js open-connection-manager` (never with &) to open it, tell the user to fill in their details and click Done, then wait for the command to return before continuing.
 ---
 
 # pi-psql
@@ -38,11 +38,18 @@ Every command that queries a database **requires `-c <name>`**. There is no impl
 ./cli.js tables -c staging
 ```
 
-If the connection you need does not exist yet, ask the user to add it:
+If the connection you need does not exist yet, **run the connection manager yourself and tell the user what to do**:
 
 ```bash
 ./cli.js open-connection-manager
 ```
+
+> ⚠️ **Do NOT run this with `&` or in the background.** The command blocks until the user clicks "Done — return to agent" in the browser. That blocking is intentional — it lets you wait for the user to finish before continuing.
+
+When you run it, tell the user something like:
+> "I've opened the connection manager in your browser. Please add the connection details there, then click **Done — return to agent** when you're finished."
+
+Once the command returns, run `./cli.js connections` to confirm the new connection is available, then continue the task.
 
 ---
 
@@ -237,13 +244,23 @@ Runs a lightweight probe query to verify the connection is reachable. Reports da
 ./cli.js open-connection-manager
 ```
 
-Starts a local web server and opens the connection manager in the browser. Use this to **add, edit, or delete connections**. The web UI is private — you cannot observe it. Ask the user to run this command when a new connection is needed.
+**Run this yourself** whenever a connection needs to be added or changed. Do not ask the user to run it.
+
+> ⚠️ **Never run this with `&` or in the background.** It blocks until the user clicks "Done — return to agent", which is how you know they have finished. Backgrounding it breaks that guarantee and will cause you to continue before the connection exists.
+
+Workflow:
+1. Run `./cli.js open-connection-manager` — the browser opens automatically
+2. Tell the user: *"I've opened the connection manager. Please add your connection details and click Done — return to agent when finished."*
+3. Wait — the command will unblock once the user clicks Done
+4. Run `./cli.js connections` to confirm the connection is now available
+5. Continue the original task
 
 ```bash
 ./cli.js open-connection-manager
+# ... user fills in details and clicks Done ...
+./cli.js connections   # verify it's there
+./cli.js test <name>   # confirm it works
 ```
-
-This is the **only way to add or modify connections**. You cannot do it from the CLI directly.
 
 ---
 
@@ -293,7 +310,7 @@ This is the **only way to add or modify connections**. You cannot do it from the
 
 ## Limitations
 
-- **You cannot add or modify connections** — the user must do this via `open-connection-manager`.
+- **You cannot add or modify connections directly** — run `./cli.js open-connection-manager` yourself and guide the user through it.
+- **Never background `open-connection-manager` with `&`** — it must block so you wait for the user to finish.
 - You cannot see plaintext credentials or connection strings.
 - Only PostgreSQL databases are supported.
-- If a needed connection does not exist, ask the user to add it via `./cli.js open-connection-manager`.
