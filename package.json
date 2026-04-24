@@ -2,6 +2,10 @@
   "name": "pi-psql",
   "version": "2.0.9",
   "description": "Secure PostgreSQL client skill for pi - query databases with encrypted credentials",
+  "main": "cli.js",
+  "bin": {
+    "pi-psql": "./cli.js"
+  },
   "keywords": [
     "pi-package",
     "pi-skill",
@@ -31,7 +35,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "open": "^10.1.0",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
