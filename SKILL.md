@@ -1,6 +1,6 @@
 ---
 name: pi-psql
-description: Secure PostgreSQL client with AES-256-GCM encrypted credentials. Run SQL queries, inspect schemas, list tables and views, explore indexes, and check connection health. Use when working with PostgreSQL databases. Connections are managed by humans via a browser UI — run `./cli.js open-connection-manager` (never with &) to open it, tell the user to fill in their details and click Done, then wait for the command to return before continuing.
+description: Secure PostgreSQL client with AES-256-GCM encrypted credentials. Run SQL queries, inspect schemas, list tables and views, explore indexes, and check connection health. Use when working with PostgreSQL databases. Connections are managed by humans via a browser UI — run `./cli.js open-connection-manager` as a foreground command (no &), tell the user to fill in their details and click Done, then wait for the command to return before continuing.
 ---
 
 # pi-psql
@@ -44,7 +44,7 @@ If the connection you need does not exist yet, **run the connection manager your
 ./cli.js open-connection-manager
 ```
 
-> ⚠️ **Do NOT run this with `&` or in the background.** The command blocks until the user clicks "Done — return to agent" in the browser. That blocking is intentional — it lets you wait for the user to finish before continuing.
+> ⚠️ **Run this as a foreground command — do not append `&`.** `&` would background the process and cause you to continue immediately, before the user has had a chance to add anything. Without `&`, the command blocks until the user clicks "Done — return to agent", which is your signal to proceed.
 
 When you run it, tell the user something like:
 > "I've opened the connection manager in your browser. Please add the connection details there, then click **Done — return to agent** when you're finished."
@@ -246,7 +246,7 @@ Runs a lightweight probe query to verify the connection is reachable. Reports da
 
 **Run this yourself** whenever a connection needs to be added or changed. Do not ask the user to run it.
 
-> ⚠️ **Never run this with `&` or in the background.** It blocks until the user clicks "Done — return to agent", which is how you know they have finished. Backgrounding it breaks that guarantee and will cause you to continue before the connection exists.
+> ⚠️ **Run this as a foreground command — do not append `&`.** `&` backgrounds the process and you would continue immediately without waiting. Without `&`, the command blocks until the user clicks "Done — return to agent", which is how you know they are finished.
 
 Workflow:
 1. Run `./cli.js open-connection-manager` — the browser opens automatically
@@ -310,7 +310,7 @@ Workflow:
 
 ## Limitations
 
-- **You cannot add or modify connections directly** — run `./cli.js open-connection-manager` yourself and guide the user through it.
+- **You cannot add or modify connections directly** — run `./cli.js open-connection-manager` as a foreground command (no `&`) and guide the user through it.
 - **Never background `open-connection-manager` with `&`** — it must block so you wait for the user to finish.
 - You cannot see plaintext credentials or connection strings.
 - Only PostgreSQL databases are supported.
