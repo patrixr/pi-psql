@@ -17,13 +17,42 @@ All commands go through the single CLI:
 
 ---
 
+## Before Every Task — Check Available Connections
+
+Run `connections` first to see what databases are configured:
+
+```bash
+./cli.js connections
+```
+
+Every command that queries a database **requires `-c <name>`**. There is no implicit default — if you omit it, the command will fail with a clear error. Use the name shown by `connections`.
+
+```bash
+./cli.js connections
+# NAME        TYPE          DEFAULT
+# local       parameters
+# staging     parameters
+# production  conn-string   ★
+
+./cli.js query "SELECT COUNT(*) FROM orders" -c production
+./cli.js tables -c staging
+```
+
+If the connection you need does not exist yet, ask the user to add it:
+
+```bash
+./cli.js open-connection-manager
+```
+
+---
+
 ## Global Options
 
 These flags apply to every command:
 
 | Flag | Alias | Description |
 |------|-------|-------------|
-| `--connection <name>` | `-c` | Connection to use. Omit to use the configured default. |
+| `--connection <name>` | `-c` | **Required** on all data commands. Use the name shown by `./cli.js connections`. |
 | `--format <fmt>` | `-f` | Output format: `table` (default), `json`, or `csv`. |
 | `--help` | `-h` | Show help for the current command. |
 | `--version` | `-v` | Print the CLI version. |
@@ -49,8 +78,7 @@ These flags apply to every command:
 The SQL can span multiple words without quoting for simple statements, but **always quote statements that contain shell-special characters** (`*`, `?`, `$`, `>`, etc.).
 
 ```bash
-# Simple inline query
-./cli.js query "SELECT * FROM users LIMIT 10"
+./cli.js query "SELECT * FROM users LIMIT 10" -c production
 
 # Multi-line query
 ./cli.js query "
@@ -59,19 +87,16 @@ The SQL can span multiple words without quoting for simple statements, but **alw
   WHERE created_at > NOW() - INTERVAL '30 days'
   GROUP BY 1
   ORDER BY 1
-"
+" -c production
 
 # Execute a SQL file
-./cli.js query --file ./migrations/001_add_index.sql
+./cli.js query --file ./migrations/001_add_index.sql -c production
 
 # JSON output (best for parsing results)
-./cli.js query "SELECT id, email FROM users LIMIT 5" --format json
-
-# Use a specific connection
-./cli.js query "SELECT COUNT(*) FROM orders" --connection production
+./cli.js query "SELECT id, email FROM users LIMIT 5" -c production --format json
 
 # Raise the row cap
-./cli.js query "SELECT * FROM logs" --limit 2000
+./cli.js query "SELECT * FROM logs" -c production --limit 2000
 ```
 
 DML and DDL responses show the command and affected row count:
@@ -90,14 +115,9 @@ UPDATE — 42 row(s) affected
 Lists all user tables, excluding PostgreSQL system schemas. Includes schema name, table name, and owner.
 
 ```bash
-# All tables across all user schemas
-./cli.js tables
-
-# Tables in a specific schema
-./cli.js tables --schema reporting
-
-# JSON output
-./cli.js tables --format json
+./cli.js tables -c production
+./cli.js tables -c production --schema reporting
+./cli.js tables -c production --format json
 ```
 
 ---
@@ -111,11 +131,8 @@ Lists all user tables, excluding PostgreSQL system schemas. Includes schema name
 Lists all user-defined views, excluding system schemas.
 
 ```bash
-# All views
-./cli.js views
-
-# Views in a specific schema
-./cli.js views --schema analytics
+./cli.js views -c production
+./cli.js views -c production --schema analytics
 ```
 
 ---
@@ -129,17 +146,10 @@ Lists all user-defined views, excluding system schemas.
 Outputs column name, data type, nullability, default value, and max character length. Supports `schema.table` dot notation.
 
 ```bash
-# Table in the public schema (default)
-./cli.js describe users
-
-# Using dot notation
-./cli.js describe analytics.page_views
-
-# Explicit schema flag
-./cli.js describe events --schema tracking
-
-# JSON output for programmatic inspection
-./cli.js describe orders --format json
+./cli.js describe users -c production
+./cli.js describe analytics.page_views -c production
+./cli.js describe events -c production --schema tracking
+./cli.js describe orders -c production --format json
 ```
 
 ---
@@ -153,14 +163,9 @@ Outputs column name, data type, nullability, default value, and max character le
 Shows all indexes defined on the given table, including their full definition. Supports `schema.table` dot notation.
 
 ```bash
-# Indexes on public.users
-./cli.js indexes users
-
-# Using dot notation
-./cli.js indexes analytics.events
-
-# JSON output
-./cli.js indexes orders --format json
+./cli.js indexes users -c production
+./cli.js indexes analytics.events -c production
+./cli.js indexes orders -c production --format json
 ```
 
 ---
@@ -174,14 +179,9 @@ Shows all indexes defined on the given table, including their full definition. S
 Returns the PostgreSQL version, current database name, connected user, server host, and port.
 
 ```bash
-# Info for the default connection
-./cli.js info
-
-# Info for a named connection
-./cli.js info --connection staging
-
-# JSON output
-./cli.js info --format json
+./cli.js info -c production
+./cli.js info -c staging
+./cli.js info -c production --format json
 ```
 
 ---
@@ -224,14 +224,9 @@ Example output:
 Runs a lightweight probe query to verify the connection is reachable. Reports database name, user, and server version on success.
 
 ```bash
-# Test the default connection
-./cli.js test
-
-# Test a named connection
 ./cli.js test production
-
-# JSON output
-./cli.js test staging --format json
+./cli.js test staging
+./cli.js test production --format json
 ```
 
 ---
@@ -273,26 +268,25 @@ This is the **only way to add or modify connections**. You cannot do it from the
 ## Typical Workflows
 
 ```bash
-# 1. See what connections are available
+# 1. See what connections exist
 ./cli.js connections
 
-# 2. Verify a connection works
+# 2. Verify the target is reachable
 ./cli.js test production
 
-# 3. Get your bearings in a database
-./cli.js info
-./cli.js tables
+# 3. Get your bearings
+./cli.js info -c production
+./cli.js tables -c production
 
 # 4. Explore a specific table
-./cli.js describe users
-./cli.js indexes users
+./cli.js describe users -c production
+./cli.js indexes users -c production
 
 # 5. Run a query
-./cli.js query "SELECT COUNT(*) FROM orders WHERE status = 'pending'"
+./cli.js query "SELECT COUNT(*) FROM orders WHERE status = 'pending'" -c production
 
-# 6. Use a non-default connection
-./cli.js tables --connection staging
-./cli.js query "SELECT * FROM users LIMIT 5" --connection staging
+# 6. Machine-readable output
+./cli.js query "SELECT id, email FROM users LIMIT 5" -c production --format json
 ```
 
 ---

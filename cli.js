@@ -89,7 +89,7 @@ yargs(hideBin(process.argv))
   .option('connection', {
     alias:       'c',
     type:        'string',
-    description: 'Connection name to use (defaults to the configured default)',
+    description: 'Connection name to use',
     global:      true,
   })
   .option('format', {
@@ -122,11 +122,11 @@ yargs(hideBin(process.argv))
         default:     500,
       })
       .example([
-        ['$0 query "SELECT * FROM users LIMIT 10"', 'Inline SQL'],
-        ['$0 query --file ./report.sql',            'From file'],
-        ['$0 query "SELECT 1" --format json',       'JSON output'],
-        ['$0 query "SELECT 1" -c staging',          'Specific connection'],
-      ]),
+        ['$0 query "SELECT * FROM users LIMIT 10" -c mydb', 'Inline SQL'],
+        ['$0 query --file ./report.sql -c mydb',             'From file'],
+        ['$0 query "SELECT 1" -c mydb --format json',        'JSON output'],
+      ])
+      .demandOption('connection', 'Specify a connection with -c <name>. Run `./cli.js connections` to list available connections.'),
     async (argv) => {
       try {
         let sql = argv.sql?.length ? argv.sql.join(' ') : null;
@@ -177,10 +177,11 @@ yargs(hideBin(process.argv))
         description: 'Filter by a specific schema (shows all non-system schemas by default)',
       })
       .example([
-        ['$0 tables',                  'All user tables'],
-        ['$0 tables --schema public',  'Tables in a specific schema'],
-        ['$0 tables --format json',    'JSON output'],
-      ]),
+        ['$0 tables -c mydb',                  'All user tables'],
+        ['$0 tables -c mydb --schema public',  'Tables in a specific schema'],
+        ['$0 tables -c mydb --format json',    'JSON output'],
+      ])
+      .demandOption('connection', 'Specify a connection with -c <name>. Run `./cli.js connections` to see available connections.'),
     async (argv) => {
       try {
         const conn = getConn(argv);
@@ -201,9 +202,10 @@ yargs(hideBin(process.argv))
         description: 'Filter by a specific schema (shows all non-system schemas by default)',
       })
       .example([
-        ['$0 views',                       'All user views'],
-        ['$0 views --schema reporting',    'Views in a specific schema'],
-      ]),
+        ['$0 views -c mydb',                       'All user views'],
+        ['$0 views -c mydb --schema reporting',    'Views in a specific schema'],
+      ])
+      .demandOption('connection', 'Specify a connection with -c <name>. Run `./cli.js connections` to see available connections.'),
     async (argv) => {
       try {
         const conn = getConn(argv);
@@ -229,9 +231,10 @@ yargs(hideBin(process.argv))
         default:     'public',
       })
       .example([
-        ['$0 describe users',              'Describe a table in public schema'],
-        ['$0 describe analytics.events',   'Describe a table in a specific schema'],
-      ]),
+        ['$0 describe users -c mydb',              'Describe a table in public schema'],
+        ['$0 describe analytics.events -c mydb',   'Describe a table in a specific schema'],
+      ])
+      .demandOption('connection', 'Specify a connection with -c <name>. Run `./cli.js connections` to see available connections.'),
     async (argv) => {
       try {
         const conn              = getConn(argv);
@@ -258,9 +261,10 @@ yargs(hideBin(process.argv))
         default:     'public',
       })
       .example([
-        ['$0 indexes users',             'Indexes on public.users'],
-        ['$0 indexes analytics.events',  'Indexes on a schema-qualified table'],
-      ]),
+        ['$0 indexes users -c mydb',             'Indexes on public.users'],
+        ['$0 indexes analytics.events -c mydb',  'Indexes on a schema-qualified table'],
+      ])
+      .demandOption('connection', 'Specify a connection with -c <name>. Run `./cli.js connections` to see available connections.'),
     async (argv) => {
       try {
         const conn              = getConn(argv);
@@ -275,11 +279,12 @@ yargs(hideBin(process.argv))
   .command(
     'info',
     'Show information about the connected database server',
-    (y) => y.example([
-      ['$0 info',                    'Info for the default connection'],
-      ['$0 info -c staging',         'Info for a specific connection'],
-      ['$0 info --format json',      'JSON output'],
-    ]),
+    (y) => y
+      .example([
+        ['$0 info -c production',         'Info for a specific connection'],
+        ['$0 info -c staging --format json', 'JSON output'],
+      ])
+      .demandOption('connection', 'Specify a connection with -c <name>. Run `./cli.js connections` to see available connections.'),
     async (argv) => {
       try {
         const conn = getConn(argv);
@@ -312,20 +317,20 @@ yargs(hideBin(process.argv))
 
   // ── test ───────────────────────────────────────────────────────────────────
   .command(
-    'test [connection]',
+    'test <connection>',
     'Test a connection by running a lightweight probe query',
     (y) => y
       .positional('connection', {
         type:        'string',
-        description: 'Connection name to test (uses the default if omitted)',
+        description: 'Connection name to test',
       })
       .example([
-        ['$0 test',             'Test the default connection'],
-        ['$0 test production',  'Test a specific connection'],
+        ['$0 test production',  'Test the production connection'],
+        ['$0 test staging',     'Test the staging connection'],
       ]),
     async (argv) => {
       try {
-        const conn = core.getConnection(argv.connection || null);
+        const conn = core.getConnection(argv.connection);
         process.stderr.write(`Testing connection: ${conn.name} ...\n`);
         const result = await core.testConnection(conn);
 
